@@ -34,12 +34,12 @@ add_executable(${PROJECT_NAME}
     include/Vector2.cpp
     include/Vector3.cpp
     include/Vector4.cpp
+    include/Rasterizer.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     include
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    # ${CMAKE_CURRENT_BINARY_DIR}/_deps/ftxui-src/include
 )
 
 target_compile_options(${PROJECT_NAME} PRIVATE /W4 /sdl /EHsc /analyze:quiet)

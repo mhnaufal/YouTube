@@ -1,5 +1,6 @@
 #include <defs.h>
-#include <curses.h>
+#include <Rasterizer.h>
+#include <Vector2.h>
 
 int main()
 {
@@ -10,20 +11,24 @@ int main()
     refresh();
 
     WINDOW *window;
-    int width = COLS, height = LINES;
-    window = newwin(height, width, 0, 0);
+    window = newwin(WINDOW_HEIGHT, WINDOW_WIDTH, 0, 0);
 
-    if (window == NULL)
+    if (window == nullptr)
     {
         endwin();
         printf("Failed to create window\n");
         return 1;
     }
 
+    Vector2 vec21(0, 0);
+    Vector2 vec22(30, 0);
+    Vector2 vec23(45, 45);
+    Rasterizer rasterizer{WINDOW_WIDTH, WINDOW_HEIGHT};
+    rasterizer.setWindow(*window);
+
     while (true)
     {
-        box(window, 0, 0);
-        mvwprintw(window, 1, 1, "Hello, World!");
+        rasterizer.rasterizerTriangle(vec21, vec22, vec23);
         wrefresh(window);
         wclear(window);
     }
