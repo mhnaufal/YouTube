@@ -42,7 +42,7 @@ struct TGAImage
     bool write_tga_file(const std::string filename, const bool vflip = true, const bool rle = true) const;
     void flip_horizontally();
     void flip_vertically();
-    TGAColor get(const int x, const int y) const;
+    TGAColor* get(const int x, const int y) const;
     void set(const int x, const int y, const TGAColor& c);
     int width() const;
     int height() const;
