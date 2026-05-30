@@ -13,8 +13,14 @@ constexpr int HEIGHT = 800;
 
 inline std::vector<std::vector<double>> VERETICES(2520, std::vector<double>(3, 0));
 
+auto signed_triangle_area(int ax, int ay, int bx, int by, int cx, int cy) -> double;
+
 auto line(int ax, int ay, int bx, int by, TGAImage& frame_buffer, TGAColor color) -> void;
 auto line_v2(int ax, int ay, int bx, int by, TGAImage& frame_buffer, TGAColor color) -> void;
 auto line_v3(int ax, int ay, int bx, int by, TGAImage& frame_buffer, TGAColor color) -> void;
+
 auto read_obj_file(TGAImage& frame_buffer) -> void;
+auto read_obj_file(TGAImage& frame_buffer, TGAImage::Format format) -> void;
+
 auto triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage& frame_buffer, TGAColor color) -> void;
+auto triangle(int ax, int ay, int az, int bx, int by, int bz, int cx, int cy, int cz, TGAImage& frame_buffer, TGAColor color, TGAImage::Format format) -> void;

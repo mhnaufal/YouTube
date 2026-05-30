@@ -1,8 +1,10 @@
 #include "renderer.h"
+#include "tgaimage.h"
 
 int main(int argc, char** argv)
 {
     TGAImage frame_buffer(WIDTH, HEIGHT, TGAImage::RGBA);
+    TGAImage depth_buffer(WIDTH, HEIGHT, TGAImage::GRAYSCALE);
 
     int ax = 20, ay = 20;
     int bx = 100, by = 680;
@@ -22,8 +24,10 @@ int main(int argc, char** argv)
     // line_v3(bx, by, cx, cy, frame_buffer, RED);
     // frame_buffer.write_tga_file("main2.tga");
 
-    read_obj_file(frame_buffer);
+    read_obj_file(frame_buffer, TGAImage::RGBA);
+    read_obj_file(depth_buffer, TGAImage::GRAYSCALE);
     frame_buffer.write_tga_file("main3.tga");
+    depth_buffer.write_tga_file("main5.tga");
 
     // triangle(ax, ay, bx, by, cx, cy, frame_buffer, GREEN);
     // frame_buffer.write_tga_file("main4.tga");

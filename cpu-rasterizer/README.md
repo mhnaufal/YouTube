@@ -8,4 +8,5 @@ Convert a single shader animation frame video into a single ASCII image represen
 cd build
 cmake ..
 cmake --build . --config Release&&.\Release\cpu-rasterizer.exe
+cmake ..&&cmake --build . --config Release&&.\Release\cpu-rasterizer.exe&&.\Release\cpu-rasterizer.exe
 ```

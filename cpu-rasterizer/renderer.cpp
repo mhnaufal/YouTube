@@ -1,9 +1,15 @@
 #include "renderer.h"
+#include "tgaimage.h"
 
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
+
+auto signed_triangle_area(int ax, int ay, int bx, int by, int cx, int cy) -> double
+{
+    return .5 * ((by - ay) * (bx + ax) + (cy - by) * (cx + bx) + (ay - cy) * (ax + cx));
+}
 
 auto line(int ax, int ay, int bx, int by, TGAImage& frame_buffer, TGAColor color) -> void
 {
@@ -78,7 +84,7 @@ auto line_v3(int ax, int ay, int bx, int by, TGAImage& frame_buffer, TGAColor co
     }
 }
 
-auto read_obj_file(TGAImage& frame_buffer) -> void
+auto read_obj_file(TGAImage& frame_buffer, TGAImage::Format format) -> void
 {
     std::ifstream fff("diablo3_pose.wobj");
     if (!fff.is_open())
@@ -87,66 +93,73 @@ auto read_obj_file(TGAImage& frame_buffer) -> void
         return;
     }
 
-    int i = 1;
+    int vcount = 0;
     std::string line{};
+#pragma omp parallel
     while (std::getline(fff, line))
     {
         char prefix;
         std::istringstream iss(line);
 
+        // collect vertex buffer
         if (line.rfind("v ", 0) == 0)
         {
             double x, y, z;
 
             iss >> prefix >> x >> y >> z;
-            VERETICES.at(i - 1) = {x, y, z};
+            VERETICES.at(vcount) = {x, y, z};
+            vcount++;
         }
-        else if (line.rfind("f ", 0) == 0)
+        else if (line.rfind("f ", 0) == 0)  // draw vertex based on faces
         {
-            int f1, f2, f3;
-            int vt1, vt2, vt3;
-            int vn1, vn2, vn3;
-            char s1, s2;
+            // f 2494/2675/2494 2491/2662/2491 2495/3259/2495
+            int f1, f2, f3;         // 1st vertex geometric
+            int vt1, vt2, vt3;      // 2nd vertex texture/UV
+            int vn1, vn2, vn3;      // 3rd vertex normal
+            char s1, s2;            // space
 
             iss >> prefix >> f1 >> s1 >> vt1 >> s2 >> vn1 >> f2 >> s1 >> vt2 >> s2 >> vn2 >> f3 >> s1 >> vt3 >> s2 >>
                 vn3;
 
-            // Scale back from orthogonal projection to screen projection
-            auto x1 = (VERETICES.at(f1).at(0) + 1) * WIDTH / 2;
-            auto y1 = (VERETICES.at(f1).at(1) + 1) * HEIGHT / 2;
-            auto z1 = (VERETICES.at(f1).at(2) + 1);
+            // OBJ face indices are 1-based, so subtract 1 to index our 0-based vertex buffer
+            // Scale back from orthogonal projection to screen projection (World to Clip space)
+            auto xv1 = (VERETICES.at(f1 - 1).at(0) + 1) * WIDTH / 2;
+            auto yv1 = (VERETICES.at(f1 - 1).at(1) + 1) * HEIGHT / 2;
+            auto zv1 = (VERETICES.at(f1 - 1).at(2) + 1) * 255 / 2;
 
-            auto x2 = (VERETICES.at(f2).at(0) + 1) * WIDTH / 2;
-            auto y2 = (VERETICES.at(f2).at(1) + 1) * HEIGHT / 2;
-            auto z2 = (VERETICES.at(f2).at(2) + 1);
+            auto xv2 = (VERETICES.at(f2 - 1).at(0) + 1) * WIDTH / 2;
+            auto yv2 = (VERETICES.at(f2 - 1).at(1) + 1) * HEIGHT / 2;
+            auto zv2 = (VERETICES.at(f2 - 1).at(2) + 1) * 255 / 2;
 
-            auto x3 = (VERETICES.at(f3).at(0) + 1) * WIDTH / 2;
-            auto y3 = (VERETICES.at(f3).at(1) + 1) * HEIGHT / 2;
-            auto z3 = (VERETICES.at(f3).at(2) + 1);
+            auto xv3 = (VERETICES.at(f3 - 1).at(0) + 1) * WIDTH / 2;
+            auto yv3 = (VERETICES.at(f3 - 1).at(1) + 1) * HEIGHT / 2;
+            auto zv3 = (VERETICES.at(f3 - 1).at(2) + 1) * 255 / 2;
 
-            triangle(x1, y1, x2, y2, x3, y3, frame_buffer, WHITE);
-            line_v3(x1, y1, x2, y2, frame_buffer, RED);
-            line_v3(x1, y1, x3, y3, frame_buffer, GREEN);
-            line_v3(x3, y3, x2, y2, frame_buffer, YELLOW);
+            triangle(xv1, yv1, zv1, xv2, yv2, zv2, xv3, yv3, zv3, frame_buffer, WHITE, format);
+            line_v3(xv1, yv1, xv2, yv2, frame_buffer, RED);
+            line_v3(xv1, yv1, xv3, yv3, frame_buffer, GREEN);
+            line_v3(xv3, yv3, xv2, yv2, frame_buffer, YELLOW);
         }
-        i = i + 1;
     }
 
     fff.close();
 }
 
-auto triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage& frame_buffer, TGAColor color) -> void
+auto triangle(int ax, int ay, int az, int bx, int by, int bz, int cx, int cy, int cz, TGAImage& frame_buffer, TGAColor color, TGAImage::Format format) -> void
 {
+    // VERSION 2
     int lowest_x = std::min({ax, bx, cx});
     int highest_x = std::max({ax, bx, cx});
     int lowest_y = std::min({ay, by, cy});
     int highest_y = std::max({ay, by, cy});
-    double lowest_x_to_camera = lowest_x;
+
+    double total_area = signed_triangle_area(ax, ay, bx, by, cx, cy);
+    if (total_area < 1) return; 
 
 #pragma omp parallel for
-    for (int i = lowest_x + 1; i <= highest_x; i += 1)
+    for (int i = lowest_x; i <= highest_x; i += 1)
     {
-        for (int j = lowest_y + 1; j <= highest_y; j += 1)
+        for (int j = lowest_y; j <= highest_y; j += 1)
         {
             // https://www.youtube.com/watch?v=HYAgJN3x4GA: computational faster
             double s1 = cy - ay;
@@ -158,17 +171,30 @@ auto triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage& frame_bu
 
             if (w1 >= 0 && w2 >= 0 && (w1 + w2) <= 1)
             {
-                int p1 = i - 0;
-                if (frame_buffer.get(i, j) != nullptr)
+                if (frame_buffer.get(i, j) != nullptr)      // if current buffer index is empty, draw?
                 {
-                    TGAColor rnd;
-                    for (int c = 0; c < 3; c++) rnd[c] = std::rand() % 255;
-                    frame_buffer.set(i, j, rnd);
+                    if (format == TGAImage::Format::RGBA)
+                    {
+                        TGAColor rnd;
+                        for (int c = 0; c < 3; c++) rnd[c] = std::rand() % 255;
+                        frame_buffer.set(i, j, rnd);
+                    }
+                    else if (format == TGAImage::Format::GRAYSCALE)
+                    {
+                        double alpha    = signed_triangle_area(i, j, bx, by, cx, cy) / total_area;
+                        double beta     = signed_triangle_area(i, j, cx, cy, ax, ay) / total_area;
+                        double gamma    = signed_triangle_area(i, j, ax, ay, bx, by) / total_area;
+                        if (alpha < 0 || beta < 0 || gamma < 0)
+                            continue;
+                        unsigned char grey = static_cast<unsigned char>(alpha * az + beta * bz + gamma * cz);
+                        frame_buffer.set(i, j, {grey});
+                    }
                 }
             }
         }
     }
 
+    // VERSION 1
     // line_v3(ax, ay, bx, by, frame_buffer, RED);
     // line_v3(bx, by, cx, cy, frame_buffer, BLUE);
     // line_v3(ax, ay, cx, cy, frame_buffer, GREEN);
