@@ -23,4 +23,16 @@ auto read_obj_file(TGAImage& frame_buffer) -> void;
 auto read_obj_file(TGAImage& frame_buffer, TGAImage::Format format) -> void;
 
 auto triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage& frame_buffer, TGAColor color) -> void;
-auto triangle(int ax, int ay, int az, int bx, int by, int bz, int cx, int cy, int cz, TGAImage& frame_buffer, TGAColor color, TGAImage::Format format) -> void;
+auto triangle(
+    int ax,
+    int ay,
+    int az,
+    int bx,
+    int by,
+    int bz,
+    int cx,
+    int cy,
+    int cz,
+    TGAImage& frame_buffer,
+    TGAColor color,
+    TGAImage::Format format) -> void;

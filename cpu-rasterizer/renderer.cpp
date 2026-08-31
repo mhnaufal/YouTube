@@ -1,11 +1,13 @@
 #include "renderer.h"
 #include "tgaimage.h"
+#include "geometry.h"
 
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
 
+// Don't know how this works :) https://haqr.eu/tinyrenderer/z-buffer/
 auto signed_triangle_area(int ax, int ay, int bx, int by, int cx, int cy) -> double
 {
     return .5 * ((by - ay) * (bx + ax) + (cy - by) * (cx + bx) + (ay - cy) * (ax + cx));
@@ -95,7 +97,9 @@ auto read_obj_file(TGAImage& frame_buffer, TGAImage::Format format) -> void
 
     int vcount = 0;
     std::string line{};
-#pragma omp parallel
+
+// omp uninstalled :)
+// #pragma omp parallel
     while (std::getline(fff, line))
     {
         char prefix;
@@ -106,7 +110,7 @@ auto read_obj_file(TGAImage& frame_buffer, TGAImage::Format format) -> void
         {
             double x, y, z;
 
-            iss >> prefix >> x >> y >> z;
+            iss >> prefix >> x >> y >> z;       // separated by spaces
             VERETICES.at(vcount) = {x, y, z};
             vcount++;
         }
@@ -126,14 +130,17 @@ auto read_obj_file(TGAImage& frame_buffer, TGAImage::Format format) -> void
             auto xv1 = (VERETICES.at(f1 - 1).at(0) + 1) * WIDTH / 2;
             auto yv1 = (VERETICES.at(f1 - 1).at(1) + 1) * HEIGHT / 2;
             auto zv1 = (VERETICES.at(f1 - 1).at(2) + 1) * 255 / 2;
+            vec3 vv1 = {xv1, yv1, zv1};
 
             auto xv2 = (VERETICES.at(f2 - 1).at(0) + 1) * WIDTH / 2;
             auto yv2 = (VERETICES.at(f2 - 1).at(1) + 1) * HEIGHT / 2;
             auto zv2 = (VERETICES.at(f2 - 1).at(2) + 1) * 255 / 2;
+            vec3 vv2 = {xv2, yv2, zv2};
 
             auto xv3 = (VERETICES.at(f3 - 1).at(0) + 1) * WIDTH / 2;
             auto yv3 = (VERETICES.at(f3 - 1).at(1) + 1) * HEIGHT / 2;
             auto zv3 = (VERETICES.at(f3 - 1).at(2) + 1) * 255 / 2;
+            vec3 vv3 = {xv3, yv3, zv3};
 
             triangle(xv1, yv1, zv1, xv2, yv2, zv2, xv3, yv3, zv3, frame_buffer, WHITE, format);
             line_v3(xv1, yv1, xv2, yv2, frame_buffer, RED);

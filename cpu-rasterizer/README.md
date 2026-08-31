@@ -9,4 +9,5 @@ cd build
 cmake ..
 cmake --build . --config Release&&.\Release\cpu-rasterizer.exe
 cmake ..&&cmake --build . --config Release&&.\Release\cpu-rasterizer.exe&&.\Release\cpu-rasterizer.exe
+cmake ..&&cmake --build . --config Release&&.\Release\cpu-rasterizer.exe
 ```
