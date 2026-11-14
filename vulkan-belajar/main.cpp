@@ -1,7 +1,17 @@
-#include <iostream>
+#include "Application.h"
 
-int main()
+int main(int argc, char* argv[])
 {
-    std::cout << "Belajar Vulkan" << std::endl;
+    vkb::Application app{};
+
+    if (!app.initialize())
+    {
+        return -1;
+    }
+
+    app.run();
+
+    app.shutdown();
+
     return 0;
 }
