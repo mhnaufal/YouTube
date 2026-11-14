@@ -17,7 +17,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE CACHE BOOL "" FORCE)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
-option(iwyu "Run include-what-you-use" OFF)
+option(iwyu "Run include-what-you-use" ON)
 if(iwyu)
     find_program(IWYU_EXE NAMES include-what-you-use REQUIRED)
     set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE ${IWYU_EXE})

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Definitions.h"
+
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_video.h>
 
@@ -14,7 +16,7 @@ public:
 
 private:
     bool b_is_running = false;
-    SDL_Window* p_window = nullptr;
+    Scope<SDL_Window*> p_window = nullptr;
 
     int i_width = 1024;
     int i_height = 768;

@@ -2,8 +2,6 @@
 
 #include "Logger.h"
 
-#include <iostream>
-
 namespace vkb
 {
 auto Application::initialize() -> bool
@@ -11,16 +9,18 @@ auto Application::initialize() -> bool
     /// Initialize SDL
     if (!SDL_InitSubSystem(SDL_INIT_VIDEO | SDL_INIT_EVENTS))
     {
-        std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
+        VKB_LOG_ERROR("Failed to initialize SDL: {}", SDL_GetError());
         return false;
     }
 
-    p_window = SDL_CreateWindow(
+    auto p_temp_window = SDL_CreateWindow(
         "Vulkan Belajar", i_width, i_height, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
+
+    p_window.reset(&p_temp_window);
 
     if (!p_window)
     {
-        std::cerr << "Failed to create SDL Window " << SDL_GetError() << std::endl;
+        VKB_LOG_ERROR("Failed to create SDL Window: {}", SDL_GetError());
         return false;
     }
 
@@ -56,8 +56,12 @@ auto Application::run() -> void
 auto Application::shutdown() -> void
 {
     b_is_running = false;
-    SDL_DestroyWindow(p_window);
+
+    SDL_DestroyWindow(*p_window.get());
+
     SDL_QuitSubSystem(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
     SDL_Quit();
+
+    VKB_LOG_INFO("Application shutdown successfully!");
 }
 } // namespace vkb
