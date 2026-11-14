@@ -163,7 +163,8 @@ auto triangle(int ax, int ay, int az, int bx, int by, int bz, int cx, int cy, in
     double total_area = signed_triangle_area(ax, ay, bx, by, cx, cy);
     if (total_area < 1) return; 
 
-#pragma omp parallel for
+// omp uninstalled :)
+// #pragma omp parallel for
     for (int i = lowest_x; i <= highest_x; i += 1)
     {
         for (int j = lowest_y; j <= highest_y; j += 1)
